@@ -40,7 +40,7 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
         print()
 
 #######################################################
-#       Fixing the output file file code
+#       Fixing the output file code
 #       For some reason the output file contains blank lines, we need to remove them
 #######################################################
 def fixOutputFile():
@@ -73,12 +73,11 @@ ser.writeTimeout = 2     #timeout for write
 
 
 #######################################################
-#       Create temporary files to hold flash dump
+#       Delete temporary files
 #######################################################
-if os.path.exists(tempfilepath):
-  os.remove(tempfilepath)
-dump_file = open(tempfilepath,'a')
-
+def deleteTemporaryFlashDumpFile():
+    if os.path.exists(tempfilepath):
+      os.remove(tempfilepath)
 
 #######################################################
 #       Main Code
@@ -111,6 +110,12 @@ if ser.isOpen():
         ser.flushInput() #flush input buffer, discarding all its contents
         ser.flushOutput()#flush output buffer, aborting current output 
                  #and discard all that is in buffer
+            
+        #Delete any temporary files before we start
+        deleteTemporaryFlashDumpFile()
+        
+        #Create a temporay file to hold our flash dump
+        dump_file = open(tempfilepath,'a')
 
         #######################################################
         #       Get the user to disconnect all other consoles
@@ -229,12 +234,14 @@ if ser.isOpen():
 
             #Check if we've read past where we want to
             if (flashLocationToReadInDecimal >= finalFlashLocation):
-                dump_file.close()
                 #Fix the output file
                 fixOutputFile()
                 #Print the time this took to complete
                 print("Complete! Execution time: " + str((time.time() - start_time) // 60) + "mins")
                 print("File written to " + finalfilepath + " now run uboot_mdb_to_image.py")
+                #Delete the temporary file
+                dump_file.close()
+                deleteTemporaryFlashDumpFile()
                 break
             else:
                 #Increment flash location to read        
